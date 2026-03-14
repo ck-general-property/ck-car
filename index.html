@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>ระบบลงเวลาใช้รถ — CK Car</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--pri:#1a5276;--pri2:#2471a3;--acc:#e67e22;--ok:#1e8449;--bg:#f0f2f5;--bdr:rgba(0,0,0,0.11);--tx:#1a202c;--mu:#6b7280;--danger:#dc2626;}
+html,body{min-height:100vh;background:var(--bg);font-family:'Sarabun',sans-serif;}
+
+/* ===== LOGIN ===== */
+#login-screen{
+  min-height:100vh;
+  background:linear-gradient(160deg,#1a5276 0%,#0e2f44 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 24px 48px;
+}
+.login-logo{text-align:center;margin-bottom:36px;color:#fff;}
+.login-logo .ic{font-size:60px;display:block;margin-bottom:12px;}
+.login-logo h1{font-size:24px;font-weight:700;}
+.login-logo p{font-size:13px;opacity:0.5;margin-top:5px;}
+
+.login-box{width:100%;max-width:380px;display:flex;flex-direction:column;gap:0;}
+
+/* DRIVER SECTION */
+.login-section-label{font-size:12px;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;}
+.sel-wrap{position:relative;margin-bottom:12px;}
+.login-sel{
+  width:100%;padding:17px 50px 17px 18px;
+  border:2px solid rgba(255,255,255,0.25);border-radius:14px;
+  background:rgba(255,255,255,0.12);
+  color:#fff;font-size:17px;font-weight:600;font-family:inherit;
+  -webkit-appearance:none;appearance:none;cursor:pointer;
+  transition:border-color 0.2s;
+}
+.login-sel:focus{outline:none;border-color:rgba(255,255,255,0.55);}
+.login-sel option{background:#154360;color:#fff;font-size:16px;}
+.sel-arrow{position:absolute;right:17px;top:50%;transform:translateY(-50%);pointer-events:none;color:rgba(255,255,255,0.5);font-size:20px;line-height:1;}
+.btn-driver{
+  width:100%;padding:17px;background:#e67e22;color:#fff;border:none;border-radius:14px;
+  font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;
+  box-shadow:0 4px 20px rgba(0,0,0,0.25);transition:background 0.2s,transform 0.1s;
+  margin-bottom:28px;
+}
+.btn-driver:active{background:#d35400;transform:scale(0.98);}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.divider hr{flex:1;border:none;border-top:1px solid rgba(255,255,255,0.15);}
+.divider span{font-size:12px;color:rgba(255,255,255,0.35);white-space:nowrap;font-weight:500;}
+
+/* ADMIN SECTION */
+.admin-section{
+  background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.12);
+  border-radius:16px;padding:18px 18px 20px;
+}
+.admin-section .login-section-label{margin-bottom:12px;}
+.admin-inp{
+  width:100%;padding:14px 16px;
+  border:2px solid rgba(255,255,255,0.15);border-radius:12px;
+  background:rgba(255,255,255,0.08);color:#fff;
+  font-size:16px;font-family:inherit;margin-bottom:12px;
+}
+.admin-inp::placeholder{color:rgba(255,255,255,0.28);}
+.admin-inp:focus{outline:none;border-color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.12);}
+.btn-admin{
+  width:100%;padding:14px;background:rgba(255,255,255,0.15);color:#fff;
+  border:2px solid rgba(255,255,255,0.2);border-radius:12px;
+  font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:background 0.2s;
+}
+.btn-admin:active{background:rgba(255,255,255,0.25);}
+.admin-err{color:#fca5a5;font-size:12px;margin-top:8px;display:none;text-align:center;}
+
+.manage-link{text-align:center;margin-top:18px;font-size:12px;color:rgba(255,255,255,0.28);cursor:pointer;}
+.manage-link:active{color:rgba(255,255,255,0.6);}
+
+/* ===== MANAGE MODAL ===== */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:500;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+.sheet{background:#fff;border-radius:20px 20px 0 0;padding:22px 20px 40px;width:100%;max-width:480px;}
+.sheet h3{font-size:17px;font-weight:700;margin-bottom:16px;color:var(--tx);}
+.mlist{max-height:260px;overflow-y:auto;margin-bottom:14px;}
+.mitem{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid #f3f4f6;}
+.mitem span{font-size:15px;color:var(--tx);}
+.del-btn{background:#fef2f2;color:#dc2626;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.add-row{display:flex;gap:8px;margin-bottom:12px;}
+.add-inp{flex:1;padding:13px 14px;border:1.5px solid var(--bdr);border-radius:10px;font-size:16px;font-family:inherit;color:var(--tx);background:#f9fafb;}
+.add-inp:focus{outline:none;border-color:var(--pri2);}
+.btn-add-drv{padding:13px 16px;background:var(--ok);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-close-sheet{width:100%;padding:13px;background:#f3f4f6;color:var(--mu);border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;}
+
+/* ===== MAIN APP ===== */
+#main-app{display:none;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--pri);color:#fff;height:56px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar h1{font-size:16px;font-weight:700;}
+.topbar-r{display:flex;align-items:center;gap:8px;}
+.conn-pill{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 10px;}
+.cdot{width:6px;height:6px;border-radius:50%;background:#9ca3af;}
+.cdot.ok{background:#22c55e;}.cdot.err{background:#ef4444;}
+.clabel{font-size:11px;color:rgba(255,255,255,0.75);}
+.user-chip{background:rgba(255,255,255,0.15);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;}
+.logout-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);padding:5px 10px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;}
+.admin-badge{background:#e67e22;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:#fff;}
+
+.bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--bdr);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);}
+.ntab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;cursor:pointer;color:var(--mu);border:none;background:none;font-family:inherit;}
+.ntab.active{color:var(--pri);}
+.ntab .ni{font-size:22px;margin-bottom:2px;}
+.ntab .nl{font-size:10px;font-weight:600;}
+
+.page{padding:16px 16px 90px;max-width:560px;margin:0 auto;}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.sbox{background:#fff;border-radius:12px;padding:14px 8px;border:0.5px solid var(--bdr);text-align:center;}
+.snum{font-size:26px;font-weight:700;color:var(--pri);}
+.slbl{font-size:10px;color:var(--mu);margin-top:2px;font-weight:600;}
+
+.card{background:#fff;border-radius:14px;padding:16px;border:0.5px solid var(--bdr);margin-bottom:14px;}
+.ctitle{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bg);}
+
+.ff{margin-bottom:14px;}
+.ff label{display:block;font-size:12px;font-weight:600;color:var(--mu);margin-bottom:5px;}
+.ff input,.ff select,.ff textarea{width:100%;padding:13px 14px;border:1.5px solid var(--bdr);border-radius:10px;font-size:16px;color:var(--tx);background:#f9fafb;font-family:inherit;-webkit-appearance:none;appearance:none;}
+.ff select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px;}
+.ff input:disabled{background:#eef0f3;color:#555;font-weight:600;font-size:14px;}
+.ff textarea{min-height:76px;resize:none;font-size:15px;}
+.ff input:focus,.ff select:focus,.ff textarea:focus{outline:none;border-color:var(--pri2);background:#fff;}
+.lock-wrap{position:relative;}
+.lock-ic{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;}
+
+.photo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;}
+.pslot{aspect-ratio:1;border:2px dashed var(--bdr);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;background:#f9fafb;}
+.pslot img{width:100%;height:100%;object-fit:cover;position:absolute;border-radius:8px;}
+.pslot .pi{font-size:22px;color:var(--mu);}
+.pslot .pt{font-size:9px;color:var(--mu);margin-top:3px;}
+.pslot input[type=file]{position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;}
+.premove{position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:10;}
+.pslot.hp .premove{display:flex;}
+.pslot.hp .pi,.pslot.hp .pt{display:none;}
+
+.btn-big{width:100%;padding:16px;background:var(--ok);color:#fff;border:none;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;}
+.btn-big:active{background:#196f3d;}
+.btn-big:disabled{background:#9ca3af;}
+.btn-clr{width:100%;padding:13px;background:#f3f4f6;color:var(--mu);border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;}
+.upbar{display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 14px;margin-top:10px;align-items:center;gap:10px;}
+.spinner{width:18px;height:18px;border:2px solid #bbf7d0;border-top-color:var(--ok);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.upbar span{font-size:13px;color:#166534;font-weight:500;}
+
+.rec-list{display:flex;flex-direction:column;gap:10px;}
+.rec{background:#fff;border-radius:12px;border:0.5px solid var(--bdr);padding:14px;cursor:pointer;}
+.rec:active{background:#f9fafb;}
+.rec-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.plate-badge{background:#dbeafe;color:#1e40af;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+.rec-time{font-size:11px;color:var(--mu);}
+.rec-driver{font-size:15px;font-weight:600;color:var(--tx);margin-bottom:3px;}
+.rec-detail{font-size:12px;color:var(--mu);}
+.rec-thumbs{display:flex;gap:4px;margin-top:8px;}
+.rthumb{width:36px;height:36px;object-fit:cover;border-radius:6px;border:1px solid var(--bdr);}
+
+/* ADMIN ONLY: full table view */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:520px;}
+th{background:#f1f3f6;padding:9px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:0.4px;white-space:nowrap;}
+td{padding:9px 10px;border-bottom:0.5px solid #f3f4f6;color:var(--tx);vertical-align:middle;}
+tr:hover td{background:#f9fafb;}
+.badge-blue{background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-green{background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.thumb-row{display:flex;gap:3px;}
+.tthumb{width:30px;height:30px;object-fit:cover;border-radius:4px;border:1px solid var(--bdr);cursor:pointer;}
+
+.fbox{background:#fff;border-radius:14px;border:0.5px solid var(--bdr);padding:16px;margin-bottom:14px;}
+.ftitle{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:12px;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.ffield label{display:block;font-size:11px;font-weight:600;color:var(--mu);margin-bottom:4px;}
+.ffield input,.ffield select{width:100%;padding:10px 12px;border:1.5px solid var(--bdr);border-radius:10px;font-size:14px;color:var(--tx);background:#f9fafb;font-family:inherit;-webkit-appearance:none;appearance:none;}
+.ffield select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px;}
+.fbtns{display:flex;gap:8px;}
+.btn-search{flex:1;padding:12px;background:var(--pri);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-export{flex:1;padding:12px;background:var(--acc);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+.rcount{font-size:13px;color:var(--mu);margin-bottom:10px;font-weight:500;}
+
+/* ADMIN MANAGE */
+.admin-tools{display:flex;justify-content:flex-end;margin-bottom:10px;}
+.btn-manage{background:var(--pri);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+
+.dsheet{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:300;align-items:flex-end;justify-content:center;}
+.dsheet.open{display:flex;}
+.dbox{background:#fff;border-radius:20px 20px 0 0;padding:20px 18px 40px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;}
+.drag-bar{width:40px;height:4px;background:#e5e7eb;border-radius:2px;margin:0 auto 16px;cursor:pointer;}
+.drow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--bg);font-size:14px;}
+.dl{color:var(--mu);}
+.dv{font-weight:600;color:var(--tx);text-align:right;max-width:60%;}
+.dphotos{margin-top:14px;}
+.dptitle{font-size:12px;font-weight:700;color:var(--mu);margin-bottom:8px;}
+.dpgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.dpgrid img{width:100%;border-radius:10px;}
+
+.empty{text-align:center;padding:36px 20px;color:var(--mu);}
+.empty .ei{font-size:38px;margin-bottom:10px;}
+.empty p{font-size:14px;}
+
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:var(--ok);color:#fff;padding:12px 22px;border-radius:30px;font-size:14px;font-weight:600;display:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
+.toast.err{background:var(--danger);}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+  <div class="login-logo">
+    <span class="ic">🚗</span>
+    <h1>ระบบลงเวลาใช้รถ</h1>
+    <p>CK Car</p>
+  </div>
+
+  <div class="login-box">
+    <!-- DRIVER -->
+    <div class="login-section-label">👤 พนักงาน — เลือกชื่อแล้วกดเข้า</div>
+    <div class="sel-wrap">
+      <select class="login-sel" id="sel-driver">
+        <option value="">-- กรุณาเลือกชื่อ --</option>
+      </select>
+      <span class="sel-arrow">▾</span>
+    </div>
+    <button class="btn-driver" onclick="driverLogin()">เข้าสู่ระบบ →</button>
+
+    <!-- DIVIDER -->
+    <div class="divider"><hr/><span>สำหรับ Admin</span><hr/></div>
+
+    <!-- ADMIN -->
+    <div class="admin-section">
+      <div class="login-section-label">🔐 Admin — ดูข้อมูลหลังบ้านทั้งหมด</div>
+      <input class="admin-inp" type="password" id="admin-pass" placeholder="รหัสผ่าน Admin" onkeydown="if(event.key==='Enter')adminLogin()"/>
+      <button class="btn-admin" onclick="adminLogin()">🔐 เข้าระบบ Admin</button>
+      <div class="admin-err" id="admin-err">รหัสผ่านไม่ถูกต้อง</div>
+    </div>
+
+    <div class="manage-link" onclick="openManage()">⚙️ จัดการรายชื่อพนักงาน</div>
+  </div>
+</div>
+
+<!-- MANAGE MODAL -->
+<div class="overlay" id="manage-modal">
+  <div class="sheet">
+    <h3>👥 จัดการรายชื่อพนักงาน</h3>
+    <div class="mlist" id="mlist"></div>
+    <div class="add-row">
+      <input class="add-inp" type="text" id="new-name" placeholder="ชื่อพนักงานใหม่" maxlength="30"/>
+      <button class="btn-add-drv" onclick="addDriver()">+ เพิ่ม</button>
+    </div>
+    <button class="btn-close-sheet" onclick="closeManage()">ปิด</button>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="main-app">
+  <div class="topbar">
+    <h1>🚗 CK Car</h1>
+    <div class="topbar-r">
+      <div class="conn-pill"><span class="cdot" id="cdot"></span><span class="clabel" id="clbl">...</span></div>
+      <span id="admin-badge" class="admin-badge" style="display:none;">ADMIN</span>
+      <div class="user-chip" id="uchip">-</div>
+      <button class="logout-btn" onclick="doLogout()">ออก</button>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="page" id="page-home" style="display:none;">
+    <div class="stats-row">
+      <div class="sbox"><div class="snum" id="s-today">-</div><div class="slbl">วันนี้</div></div>
+      <div class="sbox"><div class="snum" id="s-total">-</div><div class="slbl">ทั้งหมด</div></div>
+      <div class="sbox"><div class="snum" id="s-plates">-</div><div class="slbl">ทะเบียน</div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">รายการล่าสุด</div>
+      <div id="home-list"><div class="empty"><div class="ei">📋</div><p>กำลังโหลด...</p></div></div>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="page" id="page-log" style="display:none;">
+    <div class="card">
+      <div class="ctitle">📝 บันทึกการใช้รถ</div>
+      <div class="ff lock-wrap">
+        <label>⏰ วันที่และเวลา (ล็อคอัตโนมัติ)</label>
+        <input type="text" id="f-dt" disabled/>
+        <span class="lock-ic">🔒</span>
+      </div>
+      <div class="ff">
+        <label>🚗 ทะเบียนรถ *</label>
+        <select id="f-plate">
+          <option value="">-- เลือกทะเบียนรถ --</option>
+          <option>กข 1234 กรุงเทพ</option>
+          <option>ขค 5678 นนทบุรี</option>
+          <option>คง 9012 สมุทรปราการ</option>
+          <option>งจ 3456 ปทุมธานี</option>
+        </select>
+      </div>
+      <div class="ff">
+        <label>👤 ชื่อคนขับ *</label>
+        <select id="f-driver"><option value="">-- เลือกชื่อคนขับ --</option></select>
+      </div>
+      <div class="ff">
+        <label>🔢 เลขไมล์ปัจจุบัน (กม.) *</label>
+        <input type="number" id="f-mile" placeholder="เช่น 45231" inputmode="numeric"/>
+      </div>
+
+      <div class="ff">
+        <label>📷 รูปภาพ (สูงสุด 4 รูป)</label>
+        <div class="photo-grid">
+          <div class="pslot" id="sl0" onclick="trigPh(0)"><input type="file" accept="image/*" capture="environment" onchange="handlePh(event,0)" id="fi0"/><div class="pi">📷</div><div class="pt">รูป 1</div><button class="premove" onclick="rmPh(event,0)">✕</button></div>
+          <div class="pslot" id="sl1" onclick="trigPh(1)"><input type="file" accept="image/*" capture="environment" onchange="handlePh(event,1)" id="fi1"/><div class="pi">📷</div><div class="pt">รูป 2</div><button class="premove" onclick="rmPh(event,1)">✕</button></div>
+          <div class="pslot" id="sl2" onclick="trigPh(2)"><input type="file" accept="image/*" capture="environment" onchange="handlePh(event,2)" id="fi2"/><div class="pi">📷</div><div class="pt">รูป 3</div><button class="premove" onclick="rmPh(event,2)">✕</button></div>
+          <div class="pslot" id="sl3" onclick="trigPh(3)"><input type="file" accept="image/*" capture="environment" onchange="handlePh(event,3)" id="fi3"/><div class="pi">📷</div><div class="pt">รูป 4</div><button class="premove" onclick="rmPh(event,3)">✕</button></div>
+        </div>
+      </div>
+      <div class="ff">
+        <label>📝 หมายเหตุ</label>
+        <textarea id="f-note" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea>
+      </div>
+      <div class="upbar" id="upbar"><div class="spinner"></div><span id="upmsg">กำลังบันทึก...</span></div>
+      <button class="btn-big" id="sbtn" onclick="submitForm()">✓ บันทึกการใช้รถ</button>
+      <button class="btn-clr" onclick="clearForm()">ล้างข้อมูล</button>
+    </div>
+  </div>
+
+  <!-- REPORT (admin only) -->
+  <div class="page" id="page-report" style="display:none;">
+    <div class="admin-tools">
+      <button class="btn-manage" onclick="openManage()">⚙️ จัดการรายชื่อพนักงาน</button>
+    </div>
+    <div class="fbox">
+      <div class="ftitle">🔍 ค้นหาข้อมูลย้อนหลัง</div>
+      <div class="fgrid">
+        <div class="ffield"><label>วันที่เริ่มต้น</label><input type="date" id="ff-from" style="background-image:none;"/></div>
+        <div class="ffield"><label>วันที่สิ้นสุด</label><input type="date" id="ff-to" style="background-image:none;"/></div>
+        <div class="ffield"><label>ทะเบียนรถ</label>
+          <select id="ff-plate">
+            <option value="">ทั้งหมด</option>
+            <option>กข 1234 กรุงเทพ</option><option>ขค 5678 นนทบุรี</option>
+            <option>คง 9012 สมุทรปราการ</option><option>งจ 3456 ปทุมธานี</option>
+          </select>
+        </div>
+        <div class="ffield"><label>คนขับ</label>
+          <select id="ff-drv"><option value="">ทั้งหมด</option></select>
+        </div>
+      </div>
+      <div class="fbtns">
+        <button class="btn-search" onclick="loadReport()">🔍 ค้นหา</button>
+        <button class="btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+    </div>
+    <div class="rcount" id="rcount" style="display:none;"></div>
+    <!-- TABLE VIEW for admin -->
+    <div class="card" id="report-table-wrap" style="display:none;">
+      <div class="tbl-wrap">
+        <table id="report-table">
+          <thead>
+            <tr>
+              <th>#</th><th>วันที่/เวลา</th><th>ทะเบียน</th><th>คนขับ</th>
+              <th>ไมล์</th><th>รูป</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="report-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="report-empty" class="empty" style="display:none;"><div class="ei">🔍</div><p>ไม่พบรายการ</p></div>
+    <div id="report-placeholder" class="empty"><div class="ei">📊</div><p>กดค้นหาเพื่อดูข้อมูล</p></div>
+  </div>
+
+  <div class="bnav">
+    <button class="ntab active" id="tab-home" onclick="showPage('home')"><div class="ni">🏠</div><div class="nl">หน้าหลัก</div></button>
+    <button class="ntab" id="tab-log" onclick="showPage('log')"><div class="ni">📝</div><div class="nl">ลงเวลา</div></button>
+    <button class="ntab" id="tab-report" onclick="showPage('report')" style="display:none;"><div class="ni">📊</div><div class="nl">รายงาน</div></button>
+  </div>
+</div>
+
+<!-- DETAIL SHEET -->
+<div class="dsheet" id="dsheet">
+  <div class="dbox">
+    <div class="drag-bar" onclick="closeDetail()"></div>
+    <div id="dcontent"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SB='https://saoiebsatsumkkcjcrat.supabase.co';
+const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhb2llYnNhdHN1bWtrY2pjcmF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NjQxOTcsImV4cCI6MjA4OTA0MDE5N30.ePoFwxK6N3O769zkuuoHxumYyjHnAlX5HJeJP5mra0E';
+const BK='car-photos';
+const APWD='admin';
+
+let cu='', isAdmin=false, photos=[null,null,null,null], rdata=[];
+let drivers=JSON.parse(localStorage.getItem('ck_drv')||'["สมชาย","สมหญิง","วิชัย","อัมพร"]');
+
+function saveDrvs(){localStorage.setItem('ck_drv',JSON.stringify(drivers));}
+
+function syncAll(){
+  const opts=drivers.map(d=>`<option value="${d}">${d}</option>`).join('');
+  ['sel-driver','f-driver'].forEach(id=>{
+    const s=document.getElementById(id), v=s.value;
+    const placeholder=id==='sel-driver'?'-- กรุณาเลือกชื่อ --':'-- เลือกชื่อคนขับ --';
+    s.innerHTML=`<option value="">${placeholder}</option>`+opts;
+    if(v) s.value=v;
+  });
+  const rs=document.getElementById('ff-drv'), rv=rs.value;
+  rs.innerHTML='<option value="">ทั้งหมด</option>'+opts;
+  if(rv) rs.value=rv;
+  renderMlist();
+}
+
+function renderMlist(){
+  const el=document.getElementById('mlist');
+  if(!drivers.length){el.innerHTML='<p style="color:var(--mu);font-size:13px;text-align:center;padding:16px;">ยังไม่มีรายชื่อ</p>';return;}
+  el.innerHTML=drivers.map((d,i)=>`
+    <div class="mitem"><span>👤 ${d}</span>
+    <button class="del-btn" onclick="delDriver(${i})">ลบ</button></div>`).join('');
+}
+
+function openManage(){syncAll();document.getElementById('manage-modal').classList.add('open');setTimeout(()=>document.getElementById('new-name').focus(),200);}
+function closeManage(){document.getElementById('manage-modal').classList.remove('open');document.getElementById('new-name').value='';}
+
+function addDriver(){
+  const n=document.getElementById('new-name').value.trim();
+  if(!n){showToast('กรอกชื่อก่อนครับ',true);return;}
+  if(drivers.includes(n)){showToast(n+' มีอยู่แล้ว',true);return;}
+  drivers.push(n);saveDrvs();syncAll();
+  document.getElementById('new-name').value='';
+  showToast('เพิ่ม '+n+' สำเร็จ ✓');
+}
+function delDriver(i){
+  if(!confirm('ลบ "'+drivers[i]+'" ออก?'))return;
+  const name=drivers[i];drivers.splice(i,1);saveDrvs();syncAll();
+  showToast('ลบ '+name+' แล้ว');
+}
+
+/* LOGIN */
+function driverLogin(){
+  const name=document.getElementById('sel-driver').value;
+  if(!name){showToast('กรุณาเลือกชื่อพนักงานก่อนครับ',true);return;}
+  cu=name;isAdmin=false;startApp();
+}
+function adminLogin(){
+  const p=document.getElementById('admin-pass').value;
+  const err=document.getElementById('admin-err');
+  if(p!==APWD){err.style.display='block';return;}
+  err.style.display='none';
+  cu='Admin';isAdmin=true;startApp();
+}
+function startApp(){
+  document.getElementById('login-screen').style.display='none';
+  const ma=document.getElementById('main-app');ma.style.display='flex';ma.style.flexDirection='column';
+  document.getElementById('uchip').textContent=cu;
+  document.getElementById('admin-badge').style.display=isAdmin?'inline-block':'none';
+  document.getElementById('tab-report').style.display=isAdmin?'flex':'none';
+  initApp();
+}
+function doLogout(){
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('admin-pass').value='';
+  document.getElementById('admin-err').style.display='none';
+  cu='';isAdmin=false;photos=[null,null,null,null];
+  syncAll();
+}
+
+async function initApp(){
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('ff-from').value=today.slice(0,8)+'01';
+  document.getElementById('ff-to').value=today;
+  checkConn();loadStats();loadHomeRecent();showPage('home');setTs();
+}
+
+function setTs(){
+  document.getElementById('f-dt').value=new Date().toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const sel=document.getElementById('f-driver');
+  for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===cu){sel.selectedIndex=i;break;}}
+}
+
+function fdt(iso){
+  const d=new Date(iso);
+  return d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+}
+
+async function sbf(path,opts={}){
+  return fetch(SB+path,{...opts,headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})}});
+}
+async function uploadPh(file,fname){
+  // compress image before upload if too large
+  const blob = await compressImg(file, 1200, 0.82);
+  const r=await fetch(`${SB}/storage/v1/object/${BK}/${fname}`,{
+    method:'POST',
+    headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':blob.type,'x-upsert':'true'},
+    body:blob
+  });
+  if(!r.ok){
+    const err=await r.text();
+    console.error('Upload error:',err);
+    return null;
+  }
+  // return public URL with cache buster
+  return `${SB}/storage/v1/object/public/${BK}/${fname}?t=${Date.now()}`;
+}
+
+function compressImg(file, maxW, quality){
+  return new Promise(resolve=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      let w=img.width, h=img.height;
+      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+      const canvas=document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      canvas.toBlob(b=>resolve(b||file),'image/jpeg',quality);
+    };
+    img.onerror=()=>resolve(file);
+    img.src=url;
+  });
+}
+async function checkConn(){
+  try{
+    const r=await sbf('/rest/v1/car_logs?select=id&limit=1');
+    const ok=r.ok||r.status===406;
+    document.getElementById('cdot').className='cdot '+(ok?'ok':'err');
+    document.getElementById('clbl').textContent=ok?'ออนไลน์':'ออฟไลน์';
+  }catch{document.getElementById('cdot').className='cdot err';document.getElementById('clbl').textContent='ออฟไลน์';}
+}
+async function loadStats(){
+  try{
+    const today=new Date().toISOString().slice(0,10);
+    const [a,t]=await Promise.all([sbf('/rest/v1/car_logs?select=plate'),sbf('/rest/v1/car_logs?select=id&created_at=gte.'+today+'T00:00:00')]);
+    const ad=await a.json(),td=await t.json();
+    document.getElementById('s-total').textContent=Array.isArray(ad)?ad.length:'?';
+    document.getElementById('s-today').textContent=Array.isArray(td)?td.length:'?';
+    document.getElementById('s-plates').textContent=Array.isArray(ad)?[...new Set(ad.map(r=>r.plate))].length:0;
+  }catch{}
+}
+async function loadHomeRecent(){
+  const el=document.getElementById('home-list');
+  try{
+    const r=await sbf('/rest/v1/car_logs?select=*&order=created_at.desc&limit=10');
+    const data=await r.json();
+    if(!Array.isArray(data)||!data.length){el.innerHTML='<div class="empty"><div class="ei">📋</div><p>ยังไม่มีรายการ</p></div>';return;}
+    renderCards(el,data);
+  }catch{el.innerHTML='<div class="empty"><div class="ei">⚠️</div><p>โหลดไม่สำเร็จ</p></div>';}
+}
+
+function renderCards(el,data){
+  el.innerHTML='<div class="rec-list">'+data.map((row,i)=>{
+    const thumbs=[row.photo1,row.photo2,row.photo3,row.photo4].filter(Boolean).map(u=>`<img class="rthumb" src="${u}"/>`).join('');
+    return `<div class="rec" data-i="${i}">
+      <div class="rec-top"><span class="plate-badge">${row.plate||'-'}</span><span class="rec-time">${fdt(row.created_at)}</span></div>
+      <div class="rec-driver">👤 ${row.driver||'-'}</div>
+      <div class="rec-detail">📏 ${row.mileage?Number(row.mileage).toLocaleString()+' กม.':'-'}</div>
+      ${thumbs?`<div class="rec-thumbs">${thumbs}</div>`:''}
+    </div>`;
+  }).join('')+'</div>';
+  el.querySelectorAll('.rec').forEach(c=>{c.addEventListener('click',()=>showDetail(data[+c.dataset.i]));});
+}
+
+function showPage(p){
+  ['home','log','report'].forEach(x=>{
+    document.getElementById('page-'+x).style.display=x===p?'block':'none';
+    const t=document.getElementById('tab-'+x);if(t)t.classList.toggle('active',x===p);
+  });
+  if(p==='log')setTs();
+  if(p==='home'){loadStats();loadHomeRecent();}
+}
+
+function trigPh(i){document.getElementById('fi'+i).click();}
+function handlePh(e,i){
+  const file=e.target.files[0];if(!file)return;
+  const msg=document.getElementById('upmsg');
+  const bar=document.getElementById('upbar');
+  bar.style.display='flex';
+  msg.textContent=`กำลังโหลดรูปที่ ${i+1}...`;
+  compressImg(file,1024,0.75).then(b64=>{
+    photos[i]=b64;
+    const sl=document.getElementById('sl'+i);
+    let img=sl.querySelector('img');
+    if(!img){img=document.createElement('img');sl.appendChild(img);}
+    img.src=b64;
+    sl.classList.add('hp');
+    bar.style.display='none';
+  });
+}
+
+function compressImg(file,maxW,quality){
+  return new Promise(resolve=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      let w=img.width,h=img.height;
+      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+      const c=document.createElement('canvas');
+      c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>{
+      const r=new FileReader();
+      r.onload=ev=>resolve(ev.target.result);
+      r.readAsDataURL(file);
+    };
+    img.src=url;
+  });
+}
+
+function rmPh(e,i){
+  e.stopPropagation();photos[i]=null;
+  const sl=document.getElementById('sl'+i);
+  const img=sl.querySelector('img');if(img)img.remove();
+  sl.classList.remove('hp');document.getElementById('fi'+i).value='';
+}
+
+async function submitForm(){
+  const plate=document.getElementById('f-plate').value;
+  const driver=document.getElementById('f-driver').value;
+  const mile=document.getElementById('f-mile').value;
+  if(!plate){showToast('เลือกทะเบียนรถด้วยครับ',true);return;}
+  if(!driver){showToast('เลือกชื่อคนขับด้วยครับ',true);return;}
+  if(!mile){showToast('กรอกเลขไมล์ด้วยครับ',true);return;}
+  const btn=document.getElementById('sbtn'),bar=document.getElementById('upbar'),msg=document.getElementById('upmsg');
+  btn.disabled=true;bar.style.display='flex';
+  try{
+    msg.textContent='กำลังบันทึกลงฐานข้อมูล...';
+    const payload={
+      plate,driver,mileage:parseInt(mile),
+      note:document.getElementById('f-note').value,
+      logged_by:cu,
+      photo1:photos[0]||null,
+      photo2:photos[1]||null,
+      photo3:photos[2]||null,
+      photo4:photos[3]||null
+    };
+    const r=await sbf('/rest/v1/car_logs',{method:'POST',body:JSON.stringify(payload)});
+    if(!r.ok){const e=await r.json();throw new Error(e.message||'บันทึกไม่สำเร็จ');}
+    showToast('✓ บันทึกสำเร็จแล้ว!');clearForm();loadStats();
+  }catch(e){showToast('❌ '+e.message,true);}
+  finally{btn.disabled=false;bar.style.display='none';}
+}
+
+function clearForm(){
+  ['f-plate','f-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-mile').value='';
+  photos=[null,null,null,null];
+  for(let i=0;i<4;i++){const sl=document.getElementById('sl'+i);const img=sl.querySelector('img');if(img)img.remove();sl.classList.remove('hp');document.getElementById('fi'+i).value='';}
+  setTs();
+}
+
+async function loadReport(){
+  document.getElementById('report-table-wrap').style.display='none';
+  document.getElementById('report-empty').style.display='none';
+  document.getElementById('report-placeholder').style.display='none';
+  document.getElementById('rcount').style.display='none';
+  document.getElementById('report-tbody').innerHTML=`<tr><td colspan="9" style="text-align:center;padding:20px;"><div class="spinner" style="margin:auto;width:28px;height:28px;border-width:3px;border-color:var(--bdr);border-top-color:var(--pri);"></div></td></tr>`;
+  document.getElementById('report-table-wrap').style.display='block';
+  try{
+    let q='/rest/v1/car_logs?select=*&order=created_at.desc';
+    const from=document.getElementById('ff-from').value,to=document.getElementById('ff-to').value;
+    const plate=document.getElementById('ff-plate').value,drv=document.getElementById('ff-drv').value;
+    if(from)q+=`&created_at=gte.${from}T00:00:00`;
+    if(to)q+=`&created_at=lte.${to}T23:59:59`;
+    if(plate)q+=`&plate=eq.${encodeURIComponent(plate)}`;
+    if(drv)q+=`&driver=eq.${encodeURIComponent(drv)}`;
+    const r=await sbf(q);rdata=await r.json();
+    if(!Array.isArray(rdata))throw new Error('โหลดไม่สำเร็จ');
+    const rc=document.getElementById('rcount');rc.style.display='block';rc.textContent=`พบ ${rdata.length} รายการ`;
+    if(!rdata.length){
+      document.getElementById('report-table-wrap').style.display='none';
+      document.getElementById('report-empty').style.display='block';
+      return;
+    }
+    document.getElementById('report-tbody').innerHTML=rdata.map((row,i)=>{
+      const thumbs=[row.photo1,row.photo2,row.photo3,row.photo4].filter(Boolean)
+        .map(u=>`<img class="tthumb" src="${u}" onclick="showDetail(rdata[${i}])" />`).join('');
+      return `<tr>
+        <td>${i+1}</td>
+        <td style="white-space:nowrap;">${fdt(row.created_at)}</td>
+        <td><span class="badge-blue">${row.plate||'-'}</span></td>
+        <td>${row.driver||'-'}</td>
+        <td>${row.mileage?Number(row.mileage).toLocaleString():'-'}</td>
+        <td><div class="thumb-row">${thumbs||'<span style="font-size:11px;color:var(--mu);">ไม่มี</span>'}</div></td>
+        <td><button onclick="showDetail(rdata[${i}])" style="padding:3px 8px;font-size:11px;border:1px solid var(--bdr);border-radius:6px;cursor:pointer;background:#fff;font-family:inherit;white-space:nowrap;">ดูข้อมูล</button></td>
+      </tr>`;
+    }).join('');
+  }catch(e){
+    document.getElementById('report-table-wrap').style.display='none';
+    document.getElementById('report-empty').style.display='block';
+    document.getElementById('report-empty').innerHTML=`<div class="ei">⚠️</div><p>${e.message}</p>`;
+  }
+}
+
+function showDetail(row){
+  const ph=[row.photo1,row.photo2,row.photo3,row.photo4].filter(Boolean);
+  const phtml=ph.length?`<div class="dphotos"><div class="dptitle">📷 รูปภาพ (${ph.length} รูป) — กดเพื่อขยาย</div><div class="dpgrid">${ph.map(u=>`<a href="${u}" target="_blank"><img src="${u}"/></a>`).join('')}</div></div>`:'<p style="color:var(--mu);font-size:13px;margin-top:12px;">ไม่มีรูปภาพ</p>';
+  document.getElementById('dcontent').innerHTML=`
+    <div class="drow"><span class="dl">วันที่/เวลา</span><span class="dv">${fdt(row.created_at)}</span></div>
+    <div class="drow"><span class="dl">ทะเบียนรถ</span><span class="dv">${row.plate}</span></div>
+    <div class="drow"><span class="dl">คนขับ</span><span class="dv">${row.driver}</span></div>
+    <div class="drow"><span class="dl">เลขไมล์</span><span class="dv">${Number(row.mileage).toLocaleString()} กม.</span></div>
+    <div class="drow"><span class="dl">หมายเหตุ</span><span class="dv">${row.note||'-'}</span></div>
+    <div class="drow"><span class="dl">บันทึกโดย</span><span class="dv">${row.logged_by||'-'}</span></div>
+    ${phtml}`;
+  document.getElementById('dsheet').classList.add('open');
+}
+function closeDetail(){document.getElementById('dsheet').classList.remove('open');}
+document.getElementById('dsheet').addEventListener('click',e=>{if(e.target===document.getElementById('dsheet'))closeDetail();});
+
+function exportCSV(){
+  if(!rdata.length){showToast('ค้นหาข้อมูลก่อนนะครับ',true);return;}
+  const h=['ลำดับ','วันที่','เวลา','ทะเบียน','คนขับ','ไมล์(กม.)','หมายเหตุ','จำนวนรูป','บันทึกโดย','URL รูป1','URL รูป2','URL รูป3','URL รูป4'];
+  const rows=[h.join(',')];
+  rdata.forEach((r,i)=>{
+    const d=new Date(r.created_at);
+    const pc=[r.photo1,r.photo2,r.photo3,r.photo4].filter(Boolean).length;
+    rows.push([i+1,`"${d.toLocaleDateString('th-TH')}"`,`"${d.toLocaleTimeString('th-TH')}"`,`"${r.plate||''}"`,`"${r.driver||''}"`,r.mileage||0,`"${r.note||''}"`,pc,`"${r.logged_by||''}"`,`"${r.photo1||''}"`,`"${r.photo2||''}"`,`"${r.photo3||''}"`,`"${r.photo4||''}"`].join(','));
+  });
+  const blob=new Blob(['\uFEFF'+rows.join('\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='car-report-'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  showToast(`⬇ Export ${rdata.length} รายการสำเร็จ`);
+}
+
+function showToast(msg,isErr=false){
+  const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(isErr?' err':'');
+  t.style.display='block';setTimeout(()=>t.style.display='none',3000);
+}
+
+// init
+syncAll();
+document.getElementById('new-name').addEventListener('keydown',e=>{if(e.key==='Enter')addDriver();});
+document.getElementById('manage-modal').addEventListener('click',e=>{if(e.target===document.getElementById('manage-modal'))closeManage();});
+
+// LOGIN SECTION
+const loginBox=document.querySelector('.login-box');
+const selWrap=loginBox.querySelector('.sel-wrap');
+</script>
+</body>
+</html>
